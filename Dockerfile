@@ -1,5 +1,5 @@
 FROM alpine:latest as py-ea
-ARG ELASTALERT_VERSION=v0.2.1
+ARG ELASTALERT_VERSION=1334b611fdd7adf39991a1b0b11689568d612690
 ENV ELASTALERT_VERSION=${ELASTALERT_VERSION}
 # URL from which to download Elastalert.
 ARG ELASTALERT_URL=https://github.com/Yelp/elastalert/archive/$ELASTALERT_VERSION.zip
@@ -19,9 +19,8 @@ RUN apk add --update --no-cache ca-certificates openssl-dev openssl python3-dev 
 WORKDIR "${ELASTALERT_HOME}"
 
 # Install Elastalert.
-# see: https://github.com/Yelp/elastalert/issues/2437
-RUN sed -i 's/jira>=1.0.10,<1.0.15/jira>=2.0.0/g' setup.py && \
-    python3 setup.py install
+# With the latest hash we no longer need to monkey with package versions
+RUN python3 setup.py install
 
 FROM node:alpine
 LABEL maintainer="BitSensor <dev@bitsensor.io>"
