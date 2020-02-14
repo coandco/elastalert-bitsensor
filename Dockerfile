@@ -31,25 +31,30 @@ RUN apk add --update --no-cache curl tzdata python3 make libmagic && \
     ln -s /usr/bin/python3 /usr/bin/python
 
 COPY --from=py-ea /usr/lib/python3.8/site-packages /usr/lib/python3.8/site-packages
-COPY --from=py-ea /opt/elastalert /opt/elastalert
+COPY --from=py-ea --chown=node:node /opt/elastalert /opt/elastalert
 COPY --from=py-ea /usr/bin/elastalert* /usr/bin/
 
+USER node
+COPY --chown=node:node package.json /opt/elastalert-server/package.json
+COPY --chown=node:node index.js /opt/elastalert-server/index.js
+COPY --chown=node:node .babelrc /opt/elastalert-server/.babelrc
+
 WORKDIR /opt/elastalert-server
-COPY . /opt/elastalert-server
 
 RUN npm install --production --quiet
-COPY config/elastalert.yaml /opt/elastalert/config.yaml
-COPY config/elastalert-test.yaml /opt/elastalert/config-test.yaml
-COPY config/config.json config/config.json
-COPY rule_templates/ /opt/elastalert/rule_templates
-COPY elastalert_modules/ /opt/elastalert/elastalert_modules
+COPY --chown=node:node scripts/ /opt/elastalert-server/scripts
+COPY --chown=node:node src/ /opt/elastalert-server/src
+
+COPY --chown=node:node config/elastalert.yaml /opt/elastalert/config.yaml
+COPY --chown=node:node config/elastalert-test.yaml /opt/elastalert/config-test.yaml
+COPY --chown=node:node config/config.json config/config.json
+COPY --chown=node:node rule_templates/ /opt/elastalert/rule_templates
+COPY --chown=node:node elastalert_modules/ /opt/elastalert/elastalert_modules
 
 # Add default rules directory
-# Set permission as unpriviledged user (1000:1000), compatible with Kubernetes
-RUN mkdir -p /opt/elastalert/rules/ /opt/elastalert/server_data/tests/ \
-    && chown -R node:node /opt
+# No longer need to run separate set-permission step with COPY --chown=node:node
+RUN mkdir -p /opt/elastalert/rules/ /opt/elastalert/server_data/tests/
 
-USER node
 
 EXPOSE 3030
 ENTRYPOINT ["npm", "start"]
