@@ -55,6 +55,8 @@ COPY --chown=node:node elastalert_modules/ /opt/elastalert/elastalert_modules
 # No longer need to run separate set-permission step with COPY --chown=node:node
 RUN mkdir -p /opt/elastalert/rules/ /opt/elastalert/server_data/tests/
 
+# Several modules trigger a SyntaxWarning with Python 3.8 and squawk
+ENV PYTHONWARNINGS ignore
 
 EXPOSE 3030
 ENTRYPOINT ["npm", "start"]
